@@ -1,0 +1,1 @@
+C:/cygwin64/bin/gcc.exe -O3 -DNDEBUG   -shared -Wl,--enable-auto-import -o cygjson_parser.dll -Wl,--out-implib,libjson_parser.dll.a -Wl,--major-image-version,0,--minor-image-version,0 CMakeFiles/json_parser.dir/json.c.o 

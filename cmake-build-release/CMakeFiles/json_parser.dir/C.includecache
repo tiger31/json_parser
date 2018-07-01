@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/cygdrive/c/dev/json_parser/json.c
+stdio.h
+-
+string.h
+-
+regex.h
+-
+stdlib.h
+-
+json.h
+/cygdrive/c/dev/json_parser/json.h
+
+/cygdrive/c/dev/json_parser/json.h
+dirent.h
+-
+
