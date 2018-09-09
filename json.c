@@ -22,13 +22,13 @@ int check_string(char * string) {
     return !result;
 }
 int is_space(char c) {
-    if (c != ' ' && c != '\t' && c != '\n' && c != 'v'
+    if (c != ' ' && c != '\t' && c != '\n' && c != '\v'
         && c != '\f' && c != '\r')
         return 0;
     return 1;
 }
 int skip_spaces(char * string, int from) {
-    for (int i = from; i < (int)strlen(string); ++i) {
+    for (int i = from; i < strlen(string); ++i) {
         if (!is_space(string[i]))
             return i;
     }
@@ -55,7 +55,7 @@ int pair_index(char * string, char c, int pos) {
             return 0;
     }
     int i;
-    for (i = pos; i < (int)strlen(string); i++) {
+    for (i = pos; i < strlen(string); i++) {
         switch (string[i]) {
             case 92:
                 //Следующий символ будет пропущен
@@ -73,7 +73,6 @@ int pair_index(char * string, char c, int pos) {
                     break;
                 } else
                     escape_next = 0;
-                break;
             case 91:
                 //Если символ не пропускается(вроде такое не возможно, но проверить стоит) и не внутри строки
                 if (!escape_next && !in_quotes)
@@ -107,7 +106,7 @@ int pair_index(char * string, char c, int pos) {
     return -1;
 }
 int num_index(char * string, int pos) {
-    int len = (int)strlen(string);
+    size_t len = strlen(string);
     int i = 0;
     int space_resist = 0;
     int space_index = 0;
@@ -182,16 +181,20 @@ int parse_value(json_value * value, char * string, int pos) {
         case JSON_STR: {
             int index = pair_index(string, 34, pos + 1);
             char * str = strpaired(string, pos, index, 0);
-            if (!check_string(str))
+            if (!check_string(str)) {
+                free(str);
                 return -1;
+            }
             value->value = str;
             return index;
         }
         case JSON_NUM: {
             int index = num_index(string, pos);
             char * num = get_number(string, pos, index);
-            if (!check_number(num))
+            if (!check_number(num)) {
+                free(num);
                 return -1;
+            }
             value->value = num;
             return index - 1;
         }
@@ -204,7 +207,7 @@ int parse_value(json_value * value, char * string, int pos) {
             else
                 seq = true;
             int i;
-            for (i = 0; i < (int)strlen(seq); i++)
+            for (i = 0; i < strlen(seq); i++)
                 if (string[pos + i] != seq[i])
                     return -1;
             //Не теряем локальную переменную из памяти
@@ -225,7 +228,6 @@ int parse_value(json_value * value, char * string, int pos) {
         case JSON_ERR:
             return -1;
     }
-    return -1;
 }
 int parse_object(json_object * object, char * string) {
     states state = INIT;
@@ -233,7 +235,7 @@ int parse_object(json_object * object, char * string) {
     json_pair ** pairs = malloc(sizeof(json_pair*));
     int members = 0;
     int i = 0;
-    for (i; i < (int)length; ++i) {
+    for (i; i < length; ++i) {
         switch (state) {
             //Стадия инициализации объекта - поиск {
             case INIT:
@@ -298,7 +300,7 @@ int parse_array(json_array * array, char * string) {
     json_value ** values = '\0';
     int members = 0;
     int i = 0;
-    for (i = 0; i < (int)length; i++) {
+    for (i = 0; i < length; i++) {
         switch (state) {
             case INIT:
                 if (string[i] != 91)
@@ -339,19 +341,23 @@ int parse_array(json_array * array, char * string) {
 }
 
 void json_object_free(json_object * object) {
-    for (int i = 0; i < (int)object->length; i++) {
+    for (int i = 0; i < object->length; i++) {
         json_pair * p = object->pairs[i];
         switch (p->value->type) {
             case JSON_OBJ:
                 json_object_free(p->value->value);
+                free(p->value->value);
                 free(p->value);
                 break;
             case JSON_ARR:
                 json_array_free(p->value->value);
+                free(p->value->value);
                 free(p->value);
                 break;
             case JSON_STR:
+            case JSON_BOOL:
             case JSON_NUM:
+                free(p->value->value);
                 free(p->value);
                 break;
             default:
@@ -360,28 +366,31 @@ void json_object_free(json_object * object) {
         free(p->key);
         free(p);
     }
-    free(object);
+    free(object->pairs);
 }
 void json_array_free(json_array * array) {
-    for (int i = 0; i < (int)array->length; ++i) {
+    for (int i = 0; i < array->length; ++i) {
         json_value * value = array->values[i];
         switch (value->type) {
             case JSON_OBJ:
                 json_object_free(value->value);
+                free(value->value);
                 free(value);
                 break;
             case JSON_ARR:
                 json_array_free(value->value);
+                free(value->value);
                 free(value);
                 break;
             case JSON_STR:
+            case JSON_BOOL:
             case JSON_NUM:
+                free(value->value);
                 free(value);
                 break;
             default:
                 break;
         }
-        free(value);
     }
-    free(array);
+    free(array->values);
 }
