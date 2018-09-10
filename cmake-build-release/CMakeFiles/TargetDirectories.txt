@@ -1,3 +1,4 @@
 /cygdrive/c/dev/json_parser/cmake-build-release/CMakeFiles/edit_cache.dir
 /cygdrive/c/dev/json_parser/cmake-build-release/CMakeFiles/rebuild_cache.dir
+/cygdrive/c/dev/json_parser/cmake-build-release/CMakeFiles/json_test.dir
 /cygdrive/c/dev/json_parser/cmake-build-release/CMakeFiles/json_parser.dir

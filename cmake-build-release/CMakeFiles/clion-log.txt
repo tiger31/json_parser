@@ -1,11 +1,4 @@
 C:\Users\Fluttershy\.CLion2018.1\system\cygwin_cmake\bin\cmake.exe -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=C:/cygwin64/bin/make.exe -DCMAKE_C_COMPILER=C:/cygwin64/bin/gcc.exe -G "CodeBlocks - Unix Makefiles" /cygdrive/c/dev/json_parser
--- The C compiler identification is GNU 7.3.0
--- Check for working C compiler: C:/cygwin64/bin/gcc.exe
--- Check for working C compiler: C:/cygwin64/bin/gcc.exe -- works
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - done
--- Detecting C compile features
--- Detecting C compile features - done
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /cygdrive/c/dev/json_parser/cmake-build-release

@@ -28,7 +28,8 @@ int is_space(char c) {
     return 1;
 }
 int skip_spaces(char * string, int from) {
-    for (int i = from; i < strlen(string); ++i) {
+    int len = (int)strlen(string);
+    for (int i = from; i < len; ++i) {
         if (!is_space(string[i]))
             return i;
     }
@@ -55,7 +56,8 @@ int pair_index(char * string, char c, int pos) {
             return 0;
     }
     int i;
-    for (i = pos; i < strlen(string); i++) {
+    int len = (int)strlen(string);
+    for (i = pos; i < len; i++) {
         switch (string[i]) {
             case 92:
                 //Следующий символ будет пропущен
@@ -70,9 +72,9 @@ int pair_index(char * string, char c, int pos) {
                     if (!in_quotes && pair == 34) {
                         return i;
                     }
-                    break;
                 } else
                     escape_next = 0;
+                break;
             case 91:
                 //Если символ не пропускается(вроде такое не возможно, но проверить стоит) и не внутри строки
                 if (!escape_next && !in_quotes)
@@ -106,7 +108,7 @@ int pair_index(char * string, char c, int pos) {
     return -1;
 }
 int num_index(char * string, int pos) {
-    size_t len = strlen(string);
+    int len = (int)strlen(string);
     int i = 0;
     int space_resist = 0;
     int space_index = 0;
@@ -137,6 +139,21 @@ char * get_number(char * string, int from, int to) {
     str[len] = '\0';
     return str;
 }
+
+char * remove_spaces(char * str) {
+    size_t len = strlen(str);
+    char * number = malloc(len + 1);
+    size_t j = 0;
+    for (size_t i = 0; i < len; i++) {
+        if (!is_space(str[i]))
+            number[j++] = str[i];
+    }
+    if (j != len)
+        number = realloc(number, sizeof(char) * (j + 1));
+    number[j] = '\0';
+    return number;
+}
+
 json_type estimate_type(const char * string, int pos) {
     const char c = string[pos];
     if (c == 34) // === '"'
@@ -195,7 +212,12 @@ int parse_value(json_value * value, char * string, int pos) {
                 free(num);
                 return -1;
             }
-            value->value = num;
+            char * num_str = remove_spaces(num);
+            double * num_value = malloc(sizeof(double));
+            *num_value = strtod(num_str, NULL);
+            value->value = num_value;
+            free(num);
+            free(num_str);
             return index - 1;
         }
         case JSON_BOOL: {
@@ -207,12 +229,13 @@ int parse_value(json_value * value, char * string, int pos) {
             else
                 seq = true;
             int i;
-            for (i = 0; i < strlen(seq); i++)
+            int len = (int) strlen(seq);
+            for (i = 0; i < len; i++)
                 if (string[pos + i] != seq[i])
                     return -1;
             //Не теряем локальную переменную из памяти
             int * result = malloc(sizeof(int));
-            *result = ((seq == true) ? 1 : 0);
+            *result = ((seq == true) ? 0 : 1);
             value->value = result;
             return pos + i - 1;
         }
@@ -225,17 +248,17 @@ int parse_value(json_value * value, char * string, int pos) {
             //value оставим null-pointer`ом
             return pos + i - 1;
         }
-        case JSON_ERR:
+        default:
             return -1;
     }
 }
 int parse_object(json_object * object, char * string) {
     states state = INIT;
-    size_t length = strlen(string);
+    int length = (int)strlen(string);
     json_pair ** pairs = malloc(sizeof(json_pair*));
     int members = 0;
     int i = 0;
-    for (i; i < length; ++i) {
+    for (; i < length; ++i) {
         switch (state) {
             //Стадия инициализации объекта - поиск {
             case INIT:
@@ -296,7 +319,7 @@ int parse_object(json_object * object, char * string) {
 }
 int parse_array(json_array * array, char * string) {
     states state = INIT;
-    size_t length = strlen(string);
+    int length = (int)strlen(string);
     json_value ** values = '\0';
     int members = 0;
     int i = 0;
@@ -341,56 +364,52 @@ int parse_array(json_array * array, char * string) {
 }
 
 void json_object_free(json_object * object) {
-    for (int i = 0; i < object->length; i++) {
+    for (size_t i = 0; i < object->length; i++) {
         json_pair * p = object->pairs[i];
         switch (p->value->type) {
             case JSON_OBJ:
                 json_object_free(p->value->value);
                 free(p->value->value);
-                free(p->value);
                 break;
             case JSON_ARR:
                 json_array_free(p->value->value);
                 free(p->value->value);
-                free(p->value);
                 break;
             case JSON_STR:
             case JSON_BOOL:
             case JSON_NUM:
                 free(p->value->value);
-                free(p->value);
                 break;
             default:
                 break;
         }
+        free(p->value);
         free(p->key);
         free(p);
     }
     free(object->pairs);
 }
 void json_array_free(json_array * array) {
-    for (int i = 0; i < array->length; ++i) {
+    for (size_t i = 0; i < array->length; ++i) {
         json_value * value = array->values[i];
         switch (value->type) {
             case JSON_OBJ:
                 json_object_free(value->value);
                 free(value->value);
-                free(value);
                 break;
             case JSON_ARR:
                 json_array_free(value->value);
                 free(value->value);
-                free(value);
                 break;
             case JSON_STR:
             case JSON_BOOL:
             case JSON_NUM:
                 free(value->value);
-                free(value);
                 break;
             default:
                 break;
         }
+        free(value);
     }
     free(array->values);
 }

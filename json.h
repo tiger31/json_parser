@@ -21,22 +21,27 @@ typedef enum _states {
     EXP_COMMA,
     ENDED
 } states;
+
 typedef struct _json_value {
     json_type type;
     void * value;
 } json_value;
+
 typedef struct _json_pair {
     char * key;
     json_value * value;
 } json_pair;
+
 typedef struct _json_object {
     json_pair ** pairs;
     size_t length;
 } json_object;
+
 typedef struct _json_array {
     json_value ** values;
     size_t length;
 } json_array;
+
 int parse_object(json_object * object, char * string);
 int parse_array(json_array * array, char * string);
 
